@@ -21,7 +21,7 @@ struct Cli {
 /// Subcommands for the application
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Add an item that has been opened
+    /// Add an item that has been opened or a new Thermos
     Add {
         item: InventoryItem,
         #[arg(default_value_t = 1)]
@@ -39,6 +39,7 @@ enum InventoryItem {
     Mugs,
     Sugar,
     Sticks,
+    Thermos,
 }
 
 #[derive(Args, Clone, Debug, Deserialize, Serialize)]
