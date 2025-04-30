@@ -23,11 +23,15 @@ struct Cli {
 enum Commands {
     /// Add an item that has been opened or a new Thermos
     Add {
+        /// The item type to add of
         item: InventoryItem,
+        /// The ammount of the item to add
         #[arg(default_value_t = 1)]
         ammount: i8,
+        /// A time, will default to current time
         #[arg(long, short)]
         time: Option<chrono::NaiveTime>,
+        /// A date, will default to current date
         #[arg(long, short)]
         date: Option<chrono::NaiveDate>,
     },
