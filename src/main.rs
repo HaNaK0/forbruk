@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::{Context, anyhow};
-use chrono::Local;
+use chrono::{Local, NaiveDateTime};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use ron::ser::PrettyConfig;
 use serde::{Deserialize, Serialize};
@@ -26,6 +26,10 @@ enum Commands {
         item: InventoryItem,
         #[arg(default_value_t = 1)]
         ammount: i8,
+        #[arg(long, short)]
+        time: Option<chrono::NaiveTime>,
+        #[arg(long, short)]
+        date: Option<chrono::NaiveDate>,
     },
     /// Set the settings stored in settings.ron
     Set(Settings),
@@ -53,7 +57,7 @@ fn main() {
     let args = Cli::parse();
     
     let result = match &args.sub_command {
-        Commands::Add { item, ammount } => add(item, ammount),
+        Commands::Add { item, ammount, date, time } => add(item, ammount, time, date),
         Commands::Set(settings) => set(settings),
     };
 
@@ -70,7 +74,7 @@ fn load_settings() -> anyhow::Result<Settings> {
     Ok(ron::de::from_reader(reader)?)
 }
 
-fn add(item: &InventoryItem, ammount: &i8) -> anyhow::Result<()> {
+fn add(item: &InventoryItem, ammount: &i8, time: &Option<chrono::NaiveTime>, date: &Option<chrono::NaiveDate>) -> anyhow::Result<()> {
     let settings = load_settings()?;
     let mut path = PathBuf::new();
     path.push("data");
@@ -90,7 +94,11 @@ fn add(item: &InventoryItem, ammount: &i8) -> anyhow::Result<()> {
         .open(&path)
         .with_context(|| format!("failed to open {:?}", &path))?;
 
-    writeln!(f, "{},{:?},{}", Local::now(), item, ammount)?;
+    let time = time.unwrap_or_else(|| Local::now().naive_local().time());
+    let date = date.unwrap_or_else(|| Local::now().naive_local().date());
+    let date_time = NaiveDateTime::new(date, time);
+
+    writeln!(f, "{},{:?},{}", date_time.and_local_timezone(Local).unwrap(), item, ammount)?;
     Ok(())
 }
 
